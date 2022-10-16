@@ -101,7 +101,8 @@ class JournalSpider(scrapy.Spider):
                 for idx, photo_url in enumerate(photo_list):
                     writer.write(f"![Web Photo {idx}]({photo_url})\n") # If you WANT to save images to local, comment out this line
                     writer.write(f"![Local Photo {idx}](photo_{idx}.jpg)\n") # If you DONT WANT to save images to local, comment out this line
-                    open(f"{save_folder_dir}/photo_{idx}.jpg", "wb").write(requests.get(photo_url).content) # If you DONT WANT to save images to local, comment out this line
+                    open(f"{save_folder_dir}/photo_{idx}.jpg", "wb").write(requests.get('/'.join(photo_url.split('/')[:-1])).content) # If you DONT WANT to save images to local, comment out this line
+
         except FileNotFoundError:
             print(save_file_dir)
             raise FileNotFoundError
