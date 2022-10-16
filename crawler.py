@@ -5,8 +5,8 @@ import dateutil.parser
 import time
 import requests
 
-class DairySpider(scrapy.Spider):
-    name = 'icityDairyBackup'
+class JournalSpider(scrapy.Spider):
+    name = 'icityJournalBackup'
     start_urls = ['https://icity.ly/welcome']
     # font color options: https://www.w3schools.com/tags/ref_colornames.asp
 
@@ -45,8 +45,8 @@ class DairySpider(scrapy.Spider):
         print(f"===> Start to crawl dairies in this page")
         soup = BeautifulSoup(response.text, 'html.parser')
         dairies = soup.body.find('div', {"class": "container below-top-navbar"}).find('div', {"class": "mw-box gma600 tp"}).find('div', {"class": "cntr"}).ul.find_all('li', {"data-expand": "true"})
-        for i, dairy in enumerate(dairies):
-            self.parse_dairy(i, dairy)
+        for i, journal in enumerate(dairies):
+            self.parse_journal(i, journal)
         next_page_suffix = soup.find("a", {"data-role": "load-more-trigger"})['href']
         next_page_url = self.url_prefix + next_page_suffix
         print(f"===> Finish crawling dairies in this page")
@@ -56,35 +56,35 @@ class DairySpider(scrapy.Spider):
         yield request
 
 
-    def parse_dairy(self, i, dairy):
-        print(f"===> start to parse no.{i} dairy...")
-        dairy_text = str(dairy.find('div', {"class": "comment"}))[21:-6].replace("<br/>", "\n")
-        print(f"text before strip: {dairy_text}")
-        if "ttt=" in dairy_text:
-            dairy_text = dairy_text.split('#')[1].split('<')[0]
-        dairy_title = dairy.find('h4').text if dairy.find('h4') else dairy_text.split(',')[0][:20].replace(' ', '').replace('/', '')
+    def parse_journal(self, i, journal):
+        print(f"===> start to parse no.{i} journal...")
+        journal_text = str(journal.find('div', {"class": "comment"}))[21:-6].replace("<br/>", "\n")
+        print(f"text before strip: {journal_text}")
+        if "ttt=" in journal_text:
+            journal_text = journal_text.split('#')[1].split('<')[0]
+        journal_title = journal.find('h4').text if journal.find('h4') else journal_text.split(',')[0][:20].replace(' ', '').replace('/', '')
 
-        dairy_weather_location = dairy.find('span', {"class": "location"})
-        dairy_real_weather = dairy_weather_location.i['class'][1][15:] if dairy_weather_location else 'Unkown weather'
+        journal_weather_location = journal.find('span', {"class": "location"})
+        journal_real_weather = journal_weather_location.i['class'][1][15:] if journal_weather_location else 'Unkown weather'
 
-        dairy_real_location = dairy_weather_location.text if dairy_weather_location else 'Unknown location'
+        journal_real_location = journal_weather_location.text if journal_weather_location else 'Unknown location'
 
-        dairy_datetime = dairy.find("time", {"class": "timeago"})['datetime']
+        journal_datetime = journal.find("time", {"class": "timeago"})['datetime']
 
-        print(f"title: {dairy_title}")
-        print(f"text after strip: {dairy_text}")
-        print(f"dairy_weather: {dairy_real_weather}")
-        print(f"dairy_location: {dairy_real_location}")
-        print(f"dairy_datetime: {dairy_datetime}")
-        photo_url_classes = dairy.find_all('a', {"class": "photo-one"})
+        print(f"title: {journal_title}")
+        print(f"text after strip: {journal_text}")
+        print(f"journal_weather: {journal_real_weather}")
+        print(f"journal_location: {journal_real_location}")
+        print(f"journal_datetime: {journal_datetime}")
+        photo_url_classes = journal.find_all('a', {"class": "photo-one"})
         photo_url_list = []
         for i, photo_url_class in enumerate(photo_url_classes):
             print(f"No.{i} photo url is: {photo_url_class.img['src']}")
             photo_url_list.append(photo_url_class.img['src'])
         
-        self.save_dairy(dairy_title, dairy_text, dairy_real_weather, dairy_real_location, dairy_datetime, photo_url_list)
+        self.save_journal(journal_title, journal_text, journal_real_weather, journal_real_location, journal_datetime, photo_url_list)
         
-    def save_dairy(self, title, text, weather, location, timestamp, photo_list):
+    def save_journal(self, title, text, weather, location, timestamp, photo_list):
         dt = dateutil.parser.isoparse(timestamp)
         save_folder_dir = os.path.join(self.save_prefix, str(dt.year), str(self.month_dict[dt.month]), str(dt.day))
         hour_minute = dt.strftime("%H:%M:%S")
