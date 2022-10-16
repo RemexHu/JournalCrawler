@@ -3,17 +3,17 @@ import scrapy
 import os
 import dateutil.parser
 import time
+import requests
 
 class DairySpider(scrapy.Spider):
     name = 'icityDairyBackup'
     start_urls = ['https://icity.ly/welcome']
     # font color options: https://www.w3schools.com/tags/ref_colornames.asp
-    # font 
 
     def __init__(self, name=None, **kwargs):
         super().__init__(name=name, **kwargs)
         self.url_prefix = 'https://icity.ly/'
-        self.save_prefix = '/Users/matthu/Documents/Dairy'
+        self.save_prefix = 'the_directory_path_you_want_to_save' # <============= Fill in by yourself
         self.default_time_color = 'linen'
         self.default_location_color = 'mintcream'
         self.month_dict = {1: 'Jan', 2: 'Feb', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'Aug', 9: 'Sept',
@@ -24,8 +24,8 @@ class DairySpider(scrapy.Spider):
 
     def parse(self, response):
         print(f"===> request before login url: {response.url}")
-        username = ''       # <============= Fill in by yourself
-        password = ''       # <============= Fill in by yourself
+        username = 'your_username'       # <============= Fill in by yourself
+        password = 'your_password'       # <============= Fill in by yourself
         authenticity_token = response.css("head meta::attr(content)")[3].get()
         utf8 = '✓'
         commit = '登入'
@@ -99,7 +99,9 @@ class DairySpider(scrapy.Spider):
                 writer.write(f"{self.get_font_color(self.default_location_color, location + ', ' + weather)} \n\n")
                 writer.write(text+ '\n\n')
                 for idx, photo_url in enumerate(photo_list):
-                    writer.write(f"![Photo {idx}]({photo_url})\n")
+                    writer.write(f"![Web Photo {idx}]({photo_url})\n") # If you WANT to save images to local, comment out this line
+                    writer.write(f"![Local Photo {idx}](photo_{idx}.jpg)\n") # If you DONT WANT to save images to local, comment out this line
+                    open(f"{save_folder_dir}/photo_{idx}.jpg", "wb").write(requests.get(photo_url).content) # If you DONT WANT to save images to local, comment out this line
         except FileNotFoundError:
             print(save_file_dir)
             raise FileNotFoundError
